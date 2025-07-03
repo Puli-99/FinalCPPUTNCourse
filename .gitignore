@@ -1,0 +1,41 @@
+# Unreal Engine build files
+Binaries/
+DerivedDataCache/
+Intermediate/
+Saved/
+.vscode/
+*.sln
+*.opensdf
+*.sdf
+*.VC.db
+*.VC.opendb
+
+# Ignore Mac and Linux files
+.DS_Store
+*.swp
+
+# Ignore user-specific files
+*.user
+*.userprefs
+
+# Build configuration
+Build/
+
+# Compiled source
+*.dll
+*.exe
+*.pdb
+*.obj
+*.lib
+*.app
+
+# Quixel Megascans
+Content/Megascans/
+Content/EuropeanBeech/
+
+.vs/
+*.ipch
+*.db
+
+# Log files
+*.log
