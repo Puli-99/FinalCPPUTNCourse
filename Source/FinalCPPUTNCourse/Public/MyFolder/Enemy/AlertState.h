@@ -20,11 +20,12 @@ public:
 	UPROPERTY(EditAnywhere) FBlackboardKeySelector AlertPosition;
 	UPROPERTY(EditAnywhere) FBlackboardKeySelector minAlertDistance;
 	UPROPERTY(EditAnywhere) FBlackboardKeySelector maxAlertDistance;
-	//UPROPERTY(EditAnywhere) FBlackboardKeySelector isAlerted;
 
 	UPROPERTY(EditAnywhere) FBlackboardKeySelector isAccompanied;
 
-	void RandomPosition();
+
+	class AMyNewCharacter* player;
+	class AMyAIController* myController;
 
 
 

@@ -3,11 +3,12 @@
 
 #include "MyFolder/Enemy/MyAIController.h"
 #include "MyFolder/Enemy/C_Enemy.h"
+#include "GameFramework/CharacterMovementComponent.h" //Para el Rotator del enemigo
 #include "Perception/AISenseConfig_Sight.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "MyFolder/Player/MyNewCharacter.h"
 #include "FinalCPPUTNCourse/FinalCPPUTNCourseGameMode.h"
-#include <Kismet/GameplayStatics.h>
+#include <Kismet/GameplayStatics.h> //Para el casteo del GameMode
 
 AMyAIController::AMyAIController()
 {
@@ -29,11 +30,19 @@ AMyAIController::AMyAIController()
 	perception->ConfigureSense(*sight);
 
 	perception->OnTargetPerceptionUpdated.AddDynamic(this, &AMyAIController::OnStimulus);
+
+	//Terminamos de configurar la perceprción del enemigo
 }
 void AMyAIController::OnStimulus(AActor* Actor, FAIStimulus Stimulus)
 {
 	gameMode = Cast<AFinalCPPUTNCourseGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
 	if (!gameMode) { return; }
+
+	if (!enemy)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[OnStimulus] El enemy no está disponible aún."));
+		return;
+	}
 
 	AMyNewCharacter* detectedPlayer = Cast<AMyNewCharacter>(Actor);
 
@@ -42,14 +51,17 @@ void AMyAIController::OnStimulus(AActor* Actor, FAIStimulus Stimulus)
 		//Al detectar al player por estímulo y si player no tiene valor, le pasamos el valor de detectedPlayer, seteamos un bool para el AlertState
 		if (player == nullptr)// y agregamos al enemigo a una lista de enemigos en alerta, para saber si ya son suficientes para matar al jugador.
 		{
-			player = detectedPlayer;
-			bPlayerDetected = true;
-			Blackboard->SetValueAsObject("Player", detectedPlayer);
-			GetBlackboardComponent()->SetValueAsBool("isAlerted", true);
+			player = detectedPlayer; //Para detectar al player y limpiar su referencia una vez perdido de vista
+			bPlayerDetected = true; //bool global para usar en otros scripts
+			enemy->c_EnemyIsAlerted = true; //bool de C_Enemy para cambiar a animación de strafe
+			enemy->bUseControllerRotationYaw = false; //Sacandole el control de rotación a la IA para hacer 
+			enemy->GetCharacterMovement()->bOrientRotationToMovement = false; //que la rotación sea en base al jugador y no hacia el punto de destino
+			Blackboard->SetValueAsObject("Player", detectedPlayer); //Variable de Blackboard para perseguir al player
+			GetBlackboardComponent()->SetValueAsBool("isAlerted", true); //Variable del BB para que esté en alerta
 
 			if (!gameMode->AlertedEnemies.Contains(this))
 			{
-				gameMode->AlertedEnemies.Add(this);
+				gameMode->AlertedEnemies.Add(this); //Lo agregamos a la lista de enemigos alertados del GameMode si es que ya no estaba agregado
 				if (GetPawn())
 				{
 					UE_LOG(LogTemp, Warning, TEXT("Agregado a la lista: %s"), *GetPawn()->GetActorLabel());
@@ -61,12 +73,15 @@ void AMyAIController::OnStimulus(AActor* Actor, FAIStimulus Stimulus)
 		//Si perdemos al jugador, lo volvemos nulo, lo sacamos de la detección booleana y lo sacamos de la lista.
 		else if (player == detectedPlayer)
 		{
-			player = nullptr;
-			bPlayerDetected = false;
-			Blackboard->ClearValue("Player");
-			GetBlackboardComponent()->SetValueAsBool("isAlerted", false);
+			player = nullptr; //Limpio referencia de detectedPlayer
+			bPlayerDetected = false; //bool global para usar en otros scripts
+			enemy->c_EnemyIsAlerted = false; //bool de C_Enemy para cambiar a animación de strafe
+			enemy->bUseControllerRotationYaw = true; //Le devuelvo el control de rotación a la IA para que 
+			enemy->GetCharacterMovement()->bOrientRotationToMovement = true; //pueda rotar hacia los waypoints y no quede raro
+			Blackboard->ClearValue("Player"); //Limpiamos referencia de BB
+			GetBlackboardComponent()->SetValueAsBool("isAlerted", false); //Perdimos al jugador asi que el enemigo no debería estar alertado
 
-			gameMode->AlertedEnemies.Remove(this);
+			gameMode->AlertedEnemies.Remove(this); //Lo sacamos de la lista de enemigos alertados del GameMode
 			if (GetPawn())
 			{
 				UE_LOG(LogTemp, Warning, TEXT("Sacado de la lista: %s"), *GetPawn()->GetActorLabel());
@@ -78,6 +93,11 @@ void AMyAIController::OnStimulus(AActor* Actor, FAIStimulus Stimulus)
 void AMyAIController::BeginPlay()
 {
 	Super::BeginPlay();
+	enemy = Cast<AC_Enemy>(GetPawn());
+	if (enemy == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[Alert State] Enemy could not be casted on MyAIControler"));
+	}
 	if (behaviorTree == nullptr)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("behavior tree null"));
@@ -88,11 +108,18 @@ void AMyAIController::BeginPlay()
 
 }
 
+void AMyAIController::Tick(float DeltaTime)
+{
+	enemy->c_EnemyStrafeRight = enemyStrafeRight;
+	enemy->c_EnemyStrafeLeft = enemyStrafeLeft;
+}
+
+
 void AMyAIController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
 	if (gameMode)
 	{
-		gameMode->AlertedEnemies.Remove(this);
+		gameMode->AlertedEnemies.Remove(this); //Si el enemigo muere lo scamos de la lista
 	}
 }

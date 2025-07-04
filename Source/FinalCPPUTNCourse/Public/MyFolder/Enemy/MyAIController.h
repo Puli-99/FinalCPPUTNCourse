@@ -19,6 +19,7 @@ class FINALCPPUTNCOURSE_API AMyAIController : public AAIController
 public:
 
 	class AMyNewCharacter* player;
+	class AC_Enemy* enemy;
 	UPROPERTY(EditAnywhere) UAIPerceptionComponent* perception;
 	AMyAIController();
 	UFUNCTION() void OnStimulus(AActor* Actor, FAIStimulus Stimulus);
@@ -28,6 +29,10 @@ public:
 	void EndPlay(const EEndPlayReason::Type EndPlayReason);
 	class AFinalCPPUTNCourseGameMode* gameMode;
 	bool bPlayerDetected;
+	bool enemyStrafeRight;
+	bool enemyStrafeLeft;
+
+	virtual void Tick(float DeltaTime) override;
 
 protected:
 	// Called when the game starts or when spawned

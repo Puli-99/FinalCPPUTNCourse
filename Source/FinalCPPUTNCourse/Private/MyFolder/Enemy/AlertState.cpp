@@ -14,19 +14,18 @@
 
 EBTNodeResult::Type UAlertState::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-	AMyAIController* myController = Cast<AMyAIController>(OwnerComp.GetOwner());
+	myController = Cast<AMyAIController>(OwnerComp.GetOwner());
 	if(myController == nullptr)
 	{
-		//UE_LOG(LogTemp, Warning, TEXT("[AlertState] Cannot cast owner AMyAIController type"));
+		UE_LOG(LogTemp, Warning, TEXT("[AlertState] Cannot cast owner AMyAIController type"));
 		return EBTNodeResult::Failed;
 	}
 	//UE_LOG(LogTemp, Warning, TEXT("[AlertState] Succesfull Cast to My Controller"));
 
-
-	AMyNewCharacter* player = Cast<AMyNewCharacter>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
+	player = Cast<AMyNewCharacter>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
 	if (player == nullptr)
 	{
-//		UE_LOG(LogTemp, Warning, TEXT("[AlertState] Cannot cast MyNewCharacter"));
+		UE_LOG(LogTemp, Warning, TEXT("[AlertState] Cannot cast MyNewCharacter"));
 		return EBTNodeResult::Failed;
 	}
 	//UE_LOG(LogTemp, Warning, TEXT("[AlertState] Succesfull Cast MyNewCharacter"));
@@ -51,6 +50,19 @@ EBTNodeResult::Type UAlertState::ExecuteTask(UBehaviorTreeComponent& OwnerComp, 
 
 	// Elegís izquierda o derecha al azar
 	float sign = FMath::RandBool() ? 1.f : -1.f;
+	if (sign == 1)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("1"));
+		myController->enemyStrafeRight = true;
+		myController->enemyStrafeLeft = false;
+	}
+	if (sign == -1)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("-1"));
+		myController->enemyStrafeLeft = true;
+		myController->enemyStrafeRight = false;
+	}
+
 
 	// Elegís ángulo de dispersión (por ejemplo ±45°)
 	float angleDegrees = FMath::RandRange(120.f, 180.f); // cuán lejos del jugador querés estar
@@ -67,7 +79,7 @@ EBTNodeResult::Type UAlertState::ExecuteTask(UBehaviorTreeComponent& OwnerComp, 
 
 	// Punto final
 	FVector perimetralLocation = playerLocation + rotatedDir * distance;
-//	OwnerComp.GetBlackboardComponent()->SetValueAsVector(AlertPosition.SelectedKeyName, perimetralLocation);
+   //OwnerComp.GetBlackboardComponent()->SetValueAsVector(AlertPosition.SelectedKeyName, perimetralLocation);
 
 
 
@@ -87,6 +99,17 @@ EBTNodeResult::Type UAlertState::ExecuteTask(UBehaviorTreeComponent& OwnerComp, 
 		UE_LOG(LogTemp, Warning, TEXT("Punto inaccesible, recalculando..."));
 
 		sign = FMath::RandBool() ? 1.f : -1.f;
+		if (sign == 1)
+		{
+			myController->enemyStrafeLeft = false;
+			myController->enemyStrafeRight = true;
+		}
+		if (sign == -1)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("-1"));
+			myController->enemyStrafeRight = false;
+			myController->enemyStrafeLeft = true;
+		}
 		angleDegrees = FMath::RandRange(120.f, 180.f); // cuán lejos del jugador querés estar
 		angleRadians = FMath::DegreesToRadians(angleDegrees);
 		rotatedDir = directionToPlayer.RotateAngleAxis(sign * angleDegrees, FVector::UpVector);
@@ -98,7 +121,6 @@ EBTNodeResult::Type UAlertState::ExecuteTask(UBehaviorTreeComponent& OwnerComp, 
 
 		if (isReachable)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Moviendo a nueva posicion"));
 			OwnerComp.GetBlackboardComponent()->SetValueAsVector(AlertPosition.SelectedKeyName, perimetralLocation);
 		}
 
@@ -133,6 +155,14 @@ EBTNodeResult::Type UAlertState::ExecuteTask(UBehaviorTreeComponent& OwnerComp, 
 
 	if (myController->bPlayerDetected == true)
 	{
+		float DeltaTime = GetWorld()->GetDeltaSeconds();
+		FVector toPlayer = player->GetActorLocation() - myController->GetPawn()->GetActorLocation();
+		toPlayer.Z = 0;
+
+		FRotator lookAtRotation = FRotationMatrix::MakeFromX(toPlayer).Rotator();
+		FRotator currentRotation = myController->GetPawn()->GetActorRotation();
+		FRotator smoothRotation = FMath::RInterpTo(currentRotation, lookAtRotation, DeltaTime, 5.f);
+		myController->GetPawn()->SetActorRotation(smoothRotation);
 		UE_LOG(LogTemp, Warning, TEXT("%s En Alerta"), *myController->GetPawn()->GetActorLabel());
 
 		if (gameMode->AlertedEnemies.Num() < 3)
@@ -145,6 +175,8 @@ EBTNodeResult::Type UAlertState::ExecuteTask(UBehaviorTreeComponent& OwnerComp, 
 		{
 			OwnerComp.GetBlackboardComponent()->SetValueAsBool(isAccompanied.SelectedKeyName, true);
 			UE_LOG(LogTemp, Warning, TEXT("%s: Ataquemos'"), *myController->GetPawn()->GetActorLabel());
+			myController->enemyStrafeRight = false;
+			myController->enemyStrafeLeft = false;
 		}
 
 
@@ -155,14 +187,11 @@ EBTNodeResult::Type UAlertState::ExecuteTask(UBehaviorTreeComponent& OwnerComp, 
 	else if (myController->bPlayerDetected == false)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("%s: Dejo de estar en alerta"), *myController->GetPawn()->GetActorLabel());
-
 		OwnerComp.GetBlackboardComponent()->SetValueAsBool(isAccompanied.SelectedKeyName, false);
-		//UE_LOG(LogTemp, Warning, TEXT("Enemigos en Alerta: %d"), gameMode->AlertedEnemies.Num());
+		UE_LOG(LogTemp, Warning, TEXT("Enemigos en Alerta: %d"), gameMode->AlertedEnemies.Num());
+		myController->enemyStrafeRight = false;
+		myController->enemyStrafeLeft = false;
 	}
 
 	return EBTNodeResult::Succeeded;
-}
-
-void UAlertState::RandomPosition()
-{
 }

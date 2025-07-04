@@ -17,13 +17,16 @@ public:
 
 	UPROPERTY(EditAnywhere) int health = 100;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) int enemyDamage;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) bool c_EnemyStrafeRight;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) bool c_EnemyStrafeLeft;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) bool c_EnemyIsAlerted;
+
+
+
 	UPROPERTY(EditAnywhere) TArray <AActor*> waypoints;
 	bool isPlayerOverlaping;
 	//bool isPlayerBeingDamaged;
 	class AMyNewCharacter* myplayer;
-
-	//UPROPERTY(EditAnywhere) FTimerHandle damageTimer;
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite) float time = 0.2f;
 
 	float timer1 = 0.0f;
 
