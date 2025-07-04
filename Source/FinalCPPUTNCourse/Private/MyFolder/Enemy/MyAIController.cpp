@@ -64,8 +64,7 @@ void AMyAIController::OnStimulus(AActor* Actor, FAIStimulus Stimulus)
 				gameMode->AlertedEnemies.Add(this); //Lo agregamos a la lista de enemigos alertados del GameMode si es que ya no estaba agregado
 				if (GetPawn())
 				{
-					UE_LOG(LogTemp, Warning, TEXT("Agregado a la lista: %s"), *GetPawn()->GetActorLabel());
-
+					//UE_LOG(LogTemp, Warning, TEXT("Agregado a la lista: %s"), *GetPawn()->GetActorLabel());
 				}
 			}
 
@@ -84,7 +83,7 @@ void AMyAIController::OnStimulus(AActor* Actor, FAIStimulus Stimulus)
 			gameMode->AlertedEnemies.Remove(this); //Lo sacamos de la lista de enemigos alertados del GameMode
 			if (GetPawn())
 			{
-				UE_LOG(LogTemp, Warning, TEXT("Sacado de la lista: %s"), *GetPawn()->GetActorLabel());
+				//UE_LOG(LogTemp, Warning, TEXT("Sacado de la lista: %s"), *GetPawn()->GetActorLabel());
 
 			}
 		}
@@ -98,6 +97,8 @@ void AMyAIController::BeginPlay()
 	{
 		UE_LOG(LogTemp, Warning, TEXT("[Alert State] Enemy could not be casted on MyAIControler"));
 	}
+	enemy->bUseControllerRotationYaw = true; //Sacandole el control de rotación a la IA para hacer 
+	enemy->GetCharacterMovement()->bOrientRotationToMovement = true; //que la rotación sea en base al jugador y no hacia el punto de destino
 	if (behaviorTree == nullptr)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("behavior tree null"));
@@ -105,13 +106,25 @@ void AMyAIController::BeginPlay()
 		return;
 	}
 	RunBehaviorTree(behaviorTree);
-
 }
 
 void AMyAIController::Tick(float DeltaTime)
 {
 	enemy->c_EnemyStrafeRight = enemyStrafeRight;
 	enemy->c_EnemyStrafeLeft = enemyStrafeLeft;
+	enemy->c_EnemyIsAttacking = enemyAttacking;
+
+	timer += DeltaTime;
+
+	if (timer < 0.01f)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("%s %s Atacando"), *enemy->GetActorLabel(), enemyAttacking ? TEXT("esta") : TEXT("no esta"));
+	}
+
+	if (timer > 0.5f)
+	{
+		timer = 0.0f;
+	}
 }
 
 

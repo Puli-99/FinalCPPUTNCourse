@@ -20,6 +20,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) bool c_EnemyStrafeRight;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) bool c_EnemyStrafeLeft;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) bool c_EnemyIsAlerted;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) bool c_EnemyIsAttacking;
+
 
 
 

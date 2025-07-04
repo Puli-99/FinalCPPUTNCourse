@@ -28,7 +28,7 @@ EBTNodeResult::Type UAlertState::ExecuteTask(UBehaviorTreeComponent& OwnerComp, 
 		UE_LOG(LogTemp, Warning, TEXT("[AlertState] Cannot cast MyNewCharacter"));
 		return EBTNodeResult::Failed;
 	}
-	//UE_LOG(LogTemp, Warning, TEXT("[AlertState] Succesfull Cast MyNewCharacter"));
+	//UE_LOG(LogTemp, Warning, TEXT("Succesfull Cast MyNewCharacter"));
 
 	AFinalCPPUTNCourseGameMode* gameMode = Cast<AFinalCPPUTNCourseGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
 	if (!gameMode)
@@ -52,15 +52,15 @@ EBTNodeResult::Type UAlertState::ExecuteTask(UBehaviorTreeComponent& OwnerComp, 
 	float sign = FMath::RandBool() ? 1.f : -1.f;
 	if (sign == 1)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("1"));
-		myController->enemyStrafeRight = true;
+		//UE_LOG(LogTemp, Warning, TEXT("1"));
 		myController->enemyStrafeLeft = false;
+		myController->enemyStrafeRight = true;
 	}
 	if (sign == -1)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("-1"));
-		myController->enemyStrafeLeft = true;
+		//UE_LOG(LogTemp, Warning, TEXT("-1"));
 		myController->enemyStrafeRight = false;
+		myController->enemyStrafeLeft = true;
 	}
 
 
@@ -87,7 +87,7 @@ EBTNodeResult::Type UAlertState::ExecuteTask(UBehaviorTreeComponent& OwnerComp, 
 	UWorld* world = GEngine->GetWorldFromContextObjectChecked(this);
 	UNavigationSystemV1* navSystem = FNavigationSystem::GetCurrent<UNavigationSystemV1>(world);
 	bool isReachable = navSystem && navSystem->ProjectPointToNavigation(perimetralLocation, navLocation, FVector(100.f, 100.f, 100.f));
-	UE_LOG(LogTemp, Warning, TEXT("El punto %s alcanzable"), isReachable ? TEXT("es") : TEXT("no es"));
+	//UE_LOG(LogTemp, Warning, TEXT("El punto %s alcanzable"), isReachable ? TEXT("es") : TEXT("no es"));
 
 	if (isReachable)
 	{
@@ -96,17 +96,18 @@ EBTNodeResult::Type UAlertState::ExecuteTask(UBehaviorTreeComponent& OwnerComp, 
 	else
 	{
 		// Volver a calcular o log para debug
-		UE_LOG(LogTemp, Warning, TEXT("Punto inaccesible, recalculando..."));
+		//UE_LOG(LogTemp, Warning, TEXT("Punto inaccesible, recalculando..."));
 
 		sign = FMath::RandBool() ? 1.f : -1.f;
 		if (sign == 1)
 		{
+			//UE_LOG(LogTemp, Warning, TEXT("1"));
 			myController->enemyStrafeLeft = false;
 			myController->enemyStrafeRight = true;
 		}
 		if (sign == -1)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("-1"));
+			//UE_LOG(LogTemp, Warning, TEXT("-1"));
 			myController->enemyStrafeRight = false;
 			myController->enemyStrafeLeft = true;
 		}
@@ -117,7 +118,7 @@ EBTNodeResult::Type UAlertState::ExecuteTask(UBehaviorTreeComponent& OwnerComp, 
 		perimetralLocation = playerLocation + rotatedDir * distance;
 		isReachable = navSystem && navSystem->ProjectPointToNavigation(perimetralLocation, navLocation, FVector(100.f, 100.f, 100.f));
 
-		UE_LOG(LogTemp, Warning, TEXT("El nuevo punto %s alcanzable"), isReachable ? TEXT("es") : TEXT("no es"));
+		//UE_LOG(LogTemp, Warning, TEXT("El nuevo punto %s alcanzable"), isReachable ? TEXT("es") : TEXT("no es"));
 
 		if (isReachable)
 		{
@@ -126,7 +127,7 @@ EBTNodeResult::Type UAlertState::ExecuteTask(UBehaviorTreeComponent& OwnerComp, 
 
 		if (!isReachable)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Nada que hacer"));
+			//UE_LOG(LogTemp, Warning, TEXT("Nada que hacer"));
 			return EBTNodeResult::Failed;
 		}
 	}
@@ -160,37 +161,38 @@ EBTNodeResult::Type UAlertState::ExecuteTask(UBehaviorTreeComponent& OwnerComp, 
 		toPlayer.Z = 0;
 
 		FRotator lookAtRotation = FRotationMatrix::MakeFromX(toPlayer).Rotator();
-		FRotator currentRotation = myController->GetPawn()->GetActorRotation();
-		FRotator smoothRotation = FMath::RInterpTo(currentRotation, lookAtRotation, DeltaTime, 5.f);
-		myController->GetPawn()->SetActorRotation(smoothRotation);
-		UE_LOG(LogTemp, Warning, TEXT("%s En Alerta"), *myController->GetPawn()->GetActorLabel());
+		myController->GetPawn()->SetActorRotation(lookAtRotation);
+		//UE_LOG(LogTemp, Warning, TEXT("%s En Alerta"), *myController->GetPawn()->GetActorLabel());
 
 		if (gameMode->AlertedEnemies.Num() < 3)
 		{
+			myController->enemyAttacking = false;
 			OwnerComp.GetBlackboardComponent()->SetValueAsBool(isAccompanied.SelectedKeyName, false);
-			UE_LOG(LogTemp, Warning, TEXT("%s: No somos suficientes"), *myController->GetPawn()->GetActorLabel());
+			//UE_LOG(LogTemp, Warning, TEXT("%s: No somos suficientes"), *myController->GetPawn()->GetActorLabel());
 		}
 
 		else if (gameMode->AlertedEnemies.Num() >= 3)
 		{
-			OwnerComp.GetBlackboardComponent()->SetValueAsBool(isAccompanied.SelectedKeyName, true);
-			UE_LOG(LogTemp, Warning, TEXT("%s: Ataquemos'"), *myController->GetPawn()->GetActorLabel());
+			myController->enemyAttacking = true;
 			myController->enemyStrafeRight = false;
 			myController->enemyStrafeLeft = false;
+			OwnerComp.GetBlackboardComponent()->SetValueAsBool(isAccompanied.SelectedKeyName, true);
+			//UE_LOG(LogTemp, Warning, TEXT("%s: Ataquemos'"), *myController->GetPawn()->GetActorLabel());
 		}
 
 
-		UE_LOG(LogTemp, Warning, TEXT("Enemigos en Alerta: %d"), gameMode->AlertedEnemies.Num());
+		//UE_LOG(LogTemp, Warning, TEXT("Enemigos en Alerta: %d"), gameMode->AlertedEnemies.Num());
 
 	}
 
 	else if (myController->bPlayerDetected == false)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("%s: Dejo de estar en alerta"), *myController->GetPawn()->GetActorLabel());
-		OwnerComp.GetBlackboardComponent()->SetValueAsBool(isAccompanied.SelectedKeyName, false);
-		UE_LOG(LogTemp, Warning, TEXT("Enemigos en Alerta: %d"), gameMode->AlertedEnemies.Num());
+		//UE_LOG(LogTemp, Warning, TEXT("%s: Dejo de estar en alerta"), *myController->GetPawn()->GetActorLabel());
 		myController->enemyStrafeRight = false;
 		myController->enemyStrafeLeft = false;
+		myController->enemyAttacking = false;
+		OwnerComp.GetBlackboardComponent()->SetValueAsBool(isAccompanied.SelectedKeyName, false);
+		//UE_LOG(LogTemp, Warning, TEXT("Enemigos en Alerta: %d"), gameMode->AlertedEnemies.Num());
 	}
 
 	return EBTNodeResult::Succeeded;

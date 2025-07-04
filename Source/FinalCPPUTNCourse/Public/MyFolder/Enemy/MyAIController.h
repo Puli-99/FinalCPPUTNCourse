@@ -31,6 +31,9 @@ public:
 	bool bPlayerDetected;
 	bool enemyStrafeRight;
 	bool enemyStrafeLeft;
+	bool enemyAttacking;
+
+	float timer = 0.0f;
 
 	virtual void Tick(float DeltaTime) override;
 
