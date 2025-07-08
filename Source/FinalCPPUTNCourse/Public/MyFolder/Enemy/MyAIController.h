@@ -7,11 +7,14 @@
 #include "Perception/AIPerceptionComponent.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "Perception/AIPerceptionTypes.h"
+#include "Perception/AISenseConfig_Sight.h"
 #include "MyAIController.generated.h"
 
 /**
  * 
  */
+
+
 UCLASS()
 class FINALCPPUTNCOURSE_API AMyAIController : public AAIController
 {
@@ -21,10 +24,13 @@ public:
 	class AMyNewCharacter* player;
 	class AC_Enemy* enemy;
 	UPROPERTY(EditAnywhere) UAIPerceptionComponent* perception;
+	UPROPERTY() UAISenseConfig_Sight* sight;
 	AMyAIController();
 	UFUNCTION() void OnStimulus(AActor* Actor, FAIStimulus Stimulus);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) UBehaviorTree* behaviorTree;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) UBehaviorTree* shooterBT;
+
 	UPROPERTY(EditAnywhere) FBlackboardKeySelector isAlerted;
 	void EndPlay(const EEndPlayReason::Type EndPlayReason);
 	class AFinalCPPUTNCourseGameMode* gameMode;

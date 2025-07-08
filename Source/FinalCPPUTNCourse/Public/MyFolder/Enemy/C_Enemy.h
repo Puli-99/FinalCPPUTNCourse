@@ -6,6 +6,13 @@
 #include "GameFramework/Character.h"
 #include "C_Enemy.generated.h"
 
+UENUM(BlueprintType)
+enum class E_Enemy :uint8
+{
+	Melee UMETA(DisplayName = "Melee"),
+	Shooter UMETA(DisplayName = "Shooter")
+};
+
 UCLASS()
 class FINALCPPUTNCOURSE_API AC_Enemy : public ACharacter
 {
@@ -22,7 +29,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) bool c_EnemyIsAlerted;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) bool c_EnemyIsAttacking;
 
-
+	UPROPERTY(EditAnywhere) E_Enemy enemyType;
 
 
 	UPROPERTY(EditAnywhere) TArray <AActor*> waypoints;

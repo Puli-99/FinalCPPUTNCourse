@@ -15,5 +15,5 @@ public:
 	void NotifyActorBeginOverlap(AActor* OtherActor) override;
 
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite) int healAmount = -10;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) int healAmount = 10;
 };

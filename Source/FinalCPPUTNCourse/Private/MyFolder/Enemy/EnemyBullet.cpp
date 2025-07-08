@@ -2,7 +2,11 @@
 
 
 #include "MyFolder/Enemy/EnemyBullet.h"
-
+#include "MyFolder/Player/MyNewCharacter.h"
+#include <Kismet/GameplayStatics.h>
+#include "GameFramework/Character.h"
+#include "FinalCPPUTNCourse/FinalCPPUTNCourseCharacter.h"
+#include "Camera/CameraComponent.h"
 // Sets default values
 AEnemyBullet::AEnemyBullet()
 {
@@ -22,10 +26,22 @@ void AEnemyBullet::BeginPlay()
 // Called every frame
 void AEnemyBullet::Tick(float DeltaTime)
 {
-	AddActorLocalOffset(speed, true);
+	AddActorLocalOffset(direction * speed, true);
+
 	Super::Tick(DeltaTime);
 }
 
 void AEnemyBullet::NotifyActorBeginOverlap(AActor* OtherActor)
 {
+	AMyNewCharacter* player = Cast<AMyNewCharacter>(OtherActor);
+
+	if (player != nullptr)
+	{
+
+		if (OtherActor == player)
+		{
+			player->TakeDamage(damage);
+		}
+	}
+	Destroy();
 }

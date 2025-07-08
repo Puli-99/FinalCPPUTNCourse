@@ -32,10 +32,36 @@ void AMyNewCharacter::Tick(float DeltaTime)
 		false                    // Dibujo en 2D (falso = se adapta al mundo 3D)
 	);
 }
+
+
+
+void AMyNewCharacter::AddHealth(int amount)
+{
+	health += amount;
+	UE_LOG(LogTemp, Warning, TEXT("Player Health: %d"), health);
+}
+
+void AMyNewCharacter::AddArmor(int amount)
+{
+	armor += amount;
+	UE_LOG(LogTemp, Warning, TEXT("Player Armor: %d"), armor);
+}
+
+void AMyNewCharacter::AddAmmo(int amount)
+{
+	magazine += amount;
+	UE_LOG(LogTemp, Warning, TEXT("Player Magazines: %d"), magazine);
+}
+
+
 void AMyNewCharacter::TakeDamage(int damage)
 {
-	health -= damage;
-	//UE_LOG(LogTemp, Warning, TEXT("Player Health: %d"), health);
+	int wound = FMath::Max(damage - armor, 0);
+	armor = FMath::Max(armor - damage, 0);
+	health -= wound;
+	UE_LOG(LogTemp, Warning, TEXT("Player Armor: %d"), armor);
+	UE_LOG(LogTemp, Warning, TEXT("Player Health: %d"), health);
+
 	Die();
 }
 

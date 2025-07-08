@@ -9,7 +9,7 @@ void AHeal::NotifyActorBeginOverlap(AActor* OtherActor)
 	AMyNewCharacter* player = Cast<AMyNewCharacter>(OtherActor);
 	if (OtherActor == player)
 	{
-		player->TakeDamage(healAmount);
+		player->AddHealth(healAmount);
 		Destroy();
 	}
 

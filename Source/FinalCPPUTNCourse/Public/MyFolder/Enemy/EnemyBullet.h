@@ -15,7 +15,8 @@ public:
 	// Sets default values for this actor's properties
 	AEnemyBullet();
 	UPROPERTY(EditAnywhere) int damage;
-	UPROPERTY(EditAnywhere) FVector speed;
+	UPROPERTY(EditAnywhere) FVector direction;
+	UPROPERTY(EditAnywhere) int speed;
 	void NotifyActorBeginOverlap(AActor* OtherActor) override;
 protected:
 	// Called when the game starts or when spawned

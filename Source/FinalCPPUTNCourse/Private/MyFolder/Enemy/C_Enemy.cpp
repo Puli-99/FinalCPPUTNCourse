@@ -62,7 +62,7 @@ void AC_Enemy::Tick(float DeltaTime)
 
 		if (timer1 < 0.01f)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("%s esta atacando"), *GetActorLabel());
+			//UE_LOG(LogTemp, Warning, TEXT("%s esta atacando"), *GetActorLabel());
 			myplayer->TakeDamage(enemyDamage);
 		}
 
@@ -94,7 +94,7 @@ void AC_Enemy::Die()
 void AC_Enemy::TakeDamage(int damage)
 {
 	health -= damage;
-	UE_LOG(LogTemp, Warning, TEXT("Enemy Health: %d"), health);
+	UE_LOG(LogTemp, Warning, TEXT("%s Health: %d"), *GetActorLabel(), health);
 
 	Die();
 }

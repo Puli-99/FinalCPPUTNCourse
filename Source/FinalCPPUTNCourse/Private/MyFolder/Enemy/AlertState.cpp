@@ -134,11 +134,6 @@ EBTNodeResult::Type UAlertState::ExecuteTask(UBehaviorTreeComponent& OwnerComp, 
 
 
 
-
-
-
-
-
 	DrawDebugCircle(
 		GetWorld(),
 		playerLocation,          // Centro

@@ -12,19 +12,30 @@
 
 AMyAIController::AMyAIController()
 {
-	//Configuramos la percepción del enemigo
+	//Configuramos los BTs
 	ConstructorHelpers::FObjectFinder<UBehaviorTree> BTAsset(TEXT("/Game/0/Enemy/AI/MyBehaviourTree"));
 	if (BTAsset.Succeeded())
 	{
-		//UE_LOG(LogTemp, Warning, TEXT("BTAsset Succeed!"));
+		UE_LOG(LogTemp, Warning, TEXT("BTAsset Succeed!"));
 		behaviorTree = BTAsset.Object;
 	}
 
+
+	ConstructorHelpers::FObjectFinder<UBehaviorTree> ShooterBTAsset(TEXT("/Game/0/Enemy/AI/ShooterBT"));
+	if (ShooterBTAsset.Succeeded())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Shooter BTAsset Succeed!"));
+		shooterBT = ShooterBTAsset.Object;
+	}
+
+
+	//Configuramos la percepción del enemigo
+
 	perception = CreateDefaultSubobject<UAIPerceptionComponent>("Perception");
-	UAISenseConfig_Sight* sight = CreateDefaultSubobject<UAISenseConfig_Sight>("Sight");
+	sight = CreateDefaultSubobject<UAISenseConfig_Sight>("Sight");
 	sight->SightRadius = 1000;
 	sight->LoseSightRadius = 1100;
-	sight->PeripheralVisionAngleDegrees = 120;
+	sight->PeripheralVisionAngleDegrees = 180;
 	sight->DetectionByAffiliation.bDetectNeutrals = true;
 	sight->SetMaxAge(3);
 	perception->ConfigureSense(*sight);
@@ -92,20 +103,51 @@ void AMyAIController::OnStimulus(AActor* Actor, FAIStimulus Stimulus)
 void AMyAIController::BeginPlay()
 {
 	Super::BeginPlay();
+	UE_LOG(LogTemp, Warning, TEXT("BeginPlay"));
 	enemy = Cast<AC_Enemy>(GetPawn());
 	if (enemy == nullptr)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("[Alert State] Enemy could not be casted on MyAIControler"));
 	}
-	enemy->bUseControllerRotationYaw = true; //Sacandole el control de rotación a la IA para hacer 
-	enemy->GetCharacterMovement()->bOrientRotationToMovement = true; //que la rotación sea en base al jugador y no hacia el punto de destino
+	enemy->bUseControllerRotationYaw = true; //Dando el control de rotación a la IA para hacer 
+	enemy->GetCharacterMovement()->bOrientRotationToMovement = true; //que la rotación al principio le pertenezca rote segun la direccion de la IA
+
 	if (behaviorTree == nullptr)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("behavior tree null"));
 
 		return;
 	}
-	RunBehaviorTree(behaviorTree);
+
+	if (shooterBT == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("behavior tree null"));
+
+		return;
+	}
+
+	switch (enemy->enemyType)
+	{
+		case E_Enemy::Melee:
+			if (behaviorTree)
+			{
+				RunBehaviorTree(behaviorTree);
+				UE_LOG(LogTemp, Warning, TEXT("Running Melee BT"));
+			}
+			break;
+
+		case E_Enemy::Shooter:
+			if (shooterBT)
+			{
+				RunBehaviorTree(shooterBT);
+				sight->SightRadius = 3500;
+				sight->LoseSightRadius = 3600;
+				sight->PeripheralVisionAngleDegrees = 120;
+				UE_LOG(LogTemp, Warning, TEXT("Running Shooter BT"));
+			}
+			break;
+	}
+
 }
 
 void AMyAIController::Tick(float DeltaTime)
@@ -114,17 +156,17 @@ void AMyAIController::Tick(float DeltaTime)
 	enemy->c_EnemyStrafeLeft = enemyStrafeLeft;
 	enemy->c_EnemyIsAttacking = enemyAttacking;
 
-	timer += DeltaTime;
+	//timer += DeltaTime;
 
-	if (timer < 0.01f)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("%s %s Atacando"), *enemy->GetActorLabel(), enemyAttacking ? TEXT("esta") : TEXT("no esta"));
-	}
+	//if (timer < 0.01f)
+	//{
+	//	UE_LOG(LogTemp, Warning, TEXT("%s %s Atacando"), *enemy->GetActorLabel(), enemyAttacking ? TEXT("esta") : TEXT("no esta"));
+	//}
 
-	if (timer > 0.5f)
-	{
-		timer = 0.0f;
-	}
+	//if (timer > 0.5f)
+	//{
+	//	timer = 0.0f;
+	//}
 }
 
 
