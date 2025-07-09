@@ -26,9 +26,9 @@ void AEnemyBullet::BeginPlay()
 // Called every frame
 void AEnemyBullet::Tick(float DeltaTime)
 {
+	Super::Tick(DeltaTime);
 	AddActorLocalOffset(direction * speed, true);
 
-	Super::Tick(DeltaTime);
 }
 
 void AEnemyBullet::NotifyActorBeginOverlap(AActor* OtherActor)
@@ -37,7 +37,6 @@ void AEnemyBullet::NotifyActorBeginOverlap(AActor* OtherActor)
 
 	if (player != nullptr)
 	{
-
 		if (OtherActor == player)
 		{
 			player->TakeDamage(damage);

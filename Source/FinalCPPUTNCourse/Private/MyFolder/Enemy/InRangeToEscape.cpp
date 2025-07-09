@@ -24,5 +24,21 @@ EBTNodeResult::Type UInRangeToEscape::ExecuteTask(UBehaviorTreeComponent& OwnerC
 		UE_LOG(LogTemp, Warning, TEXT("[AlertState] Cannot cast MyNewCharacter"));
 		return EBTNodeResult::Failed;
 	}
+
+	UE_LOG(LogTemp, Warning, TEXT("Debo escapar"));
+
+	FVector playerLocation = player->GetActorLocation();
+	FVector enemyLocation = myController->GetPawn()->GetActorLocation();
+
+	float distance = FVector::Dist(playerLocation, enemyLocation);
+
+	if (distance > OwnerComp.GetBlackboardComponent()->GetValueAsFloat(EscapeRange.SelectedKeyName)) //Revisando si debe escapar
+	{
+		OwnerComp.GetBlackboardComponent()->SetValueAsBool(ShouldEscape.SelectedKeyName, false);
+		OwnerComp.GetBlackboardComponent()->SetValueAsBool(ShouldShoot.SelectedKeyName, true);
+
+		myController->enemyReposition = false;
+	}
+
 	return EBTNodeResult::Succeeded;
 }

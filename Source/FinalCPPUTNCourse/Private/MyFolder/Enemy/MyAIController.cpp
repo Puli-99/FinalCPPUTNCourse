@@ -143,6 +143,7 @@ void AMyAIController::BeginPlay()
 				sight->SightRadius = 3500;
 				sight->LoseSightRadius = 3600;
 				sight->PeripheralVisionAngleDegrees = 120;
+				perception->ConfigureSense(*sight);
 				UE_LOG(LogTemp, Warning, TEXT("Running Shooter BT"));
 			}
 			break;
@@ -155,6 +156,7 @@ void AMyAIController::Tick(float DeltaTime)
 	enemy->c_EnemyStrafeRight = enemyStrafeRight;
 	enemy->c_EnemyStrafeLeft = enemyStrafeLeft;
 	enemy->c_EnemyIsAttacking = enemyAttacking;
+	enemy->c_EnemyIsRepositioning = enemyReposition;
 
 	//timer += DeltaTime;
 

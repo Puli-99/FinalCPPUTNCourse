@@ -16,10 +16,12 @@ class FINALCPPUTNCOURSE_API UInRangeToShoot : public UBTTask_BlackboardBase
 	
 public:
 
+	UInRangeToShoot();
+
 	UPROPERTY(EditAnywhere) FBlackboardKeySelector Player;
 	UPROPERTY(EditAnywhere) FBlackboardKeySelector ShouldEscape;
+
 	UPROPERTY(EditAnywhere) FBlackboardKeySelector SafeRange;
-	UPROPERTY(EditAnywhere) FBlackboardKeySelector EnemyBullet;
 
 	class AMyNewCharacter* player;
 	class AMyAIController* myController;

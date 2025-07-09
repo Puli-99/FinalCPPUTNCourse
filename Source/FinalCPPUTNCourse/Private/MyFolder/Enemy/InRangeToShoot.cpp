@@ -10,8 +10,15 @@
 #include <Kismet/GameplayStatics.h>
 #include "Kismet/KismetMathLibrary.h"
 
+
+UInRangeToShoot::UInRangeToShoot()
+{
+	bNotifyTick = true;
+}
+
 EBTNodeResult::Type UInRangeToShoot::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
+
 	myController = Cast<AMyAIController>(OwnerComp.GetOwner());
 	if (myController == nullptr)
 	{
@@ -26,37 +33,40 @@ EBTNodeResult::Type UInRangeToShoot::ExecuteTask(UBehaviorTreeComponent& OwnerCo
 		return EBTNodeResult::Failed;
 	}
 	
-
-	FVector playerLocation = player->GetActorLocation();
-	FVector enemyLocation = myController->GetPawn()->GetActorLocation();
-
-	float distance = FVector::Dist(playerLocation, enemyLocation);
-
-	if (distance > OwnerComp.GetBlackboardComponent()->GetValueAsFloat(SafeRange.SelectedKeyName)) //Revisando si debe escapar
+	UWorld* World = myController->GetWorld();
+	if (!World)
 	{
-		OwnerComp.GetBlackboardComponent()->SetValueAsBool(ShouldEscape.SelectedKeyName, true);
+		return EBTNodeResult::Failed;
 	}
 
-	else
-	{
-		if (myController->bPlayerDetected == true)
-		{
-			UClass* bulletClass = OwnerComp.GetBlackboardComponent()->GetValueAsClass(EnemyBullet.SelectedKeyName);
-			if (!bulletClass)
-			{
-				UE_LOG(LogTemp, Warning, TEXT("[AlertState] bulletClass is null"));
-				return EBTNodeResult::Failed;
-			}
 
+	if (myController->bPlayerDetected == true)
+	{
+		FVector playerLocation = player->GetActorLocation();
+		FVector enemyLocation = myController->GetPawn()->GetActorLocation();
+
+		float distance = FVector::Dist(playerLocation, enemyLocation);
+
+		if (distance < OwnerComp.GetBlackboardComponent()->GetValueAsFloat(SafeRange.SelectedKeyName)) //Revisando si debe escapar
+		{
+			OwnerComp.GetBlackboardComponent()->SetValueAsBool(ShouldEscape.SelectedKeyName, true);
+			myController->enemyReposition = true;
+			//UE_LOG(LogTemp, Warning, TEXT("I should Escape"));
+		}
+
+		else
+		{
+			//UE_LOG(LogTemp, Warning, TEXT("I should Shoot"));
 			FRotator lookAt = UKismetMathLibrary::FindLookAtRotation(myController->GetPawn()->GetActorLocation(), player->GetActorLocation());
 			myController->GetPawn()->SetActorRotation(lookAt);
-
-			FVector spawnLocation = myController->GetPawn()->GetActorLocation() + myController->GetPawn()->GetActorForwardVector() * 100.f;
-			FRotator spawnRotation = myController->GetPawn()->GetActorRotation();
-
-			myController->GetPawn()->GetWorld()->SpawnActor<AActor>(bulletClass, spawnLocation, spawnRotation);
 		}
-		
 	}
-	return EBTNodeResult::Succeeded;
+
+	if (myController->bPlayerDetected == false)
+	{
+		OwnerComp.GetBlackboardComponent()->SetValueAsBool(ShouldEscape.SelectedKeyName, false);
+		myController->enemyReposition = false;
+	}		
+	
+	return EBTNodeResult::Succeeded; // <- Necesario
 }

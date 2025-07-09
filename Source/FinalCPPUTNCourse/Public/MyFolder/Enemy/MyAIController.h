@@ -38,6 +38,7 @@ public:
 	bool enemyStrafeRight;
 	bool enemyStrafeLeft;
 	bool enemyAttacking;
+	bool enemyReposition;
 
 	float timer = 0.0f;
 

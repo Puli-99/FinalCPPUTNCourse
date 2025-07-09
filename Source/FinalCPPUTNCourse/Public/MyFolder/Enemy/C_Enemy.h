@@ -28,9 +28,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) bool c_EnemyStrafeLeft;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) bool c_EnemyIsAlerted;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) bool c_EnemyIsAttacking;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) bool c_EnemyIsRepositioning;
 
 	UPROPERTY(EditAnywhere) E_Enemy enemyType;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) TSubclassOf<AActor> bulletToSpawn;
 
 	UPROPERTY(EditAnywhere) TArray <AActor*> waypoints;
 	bool isPlayerOverlaping;
