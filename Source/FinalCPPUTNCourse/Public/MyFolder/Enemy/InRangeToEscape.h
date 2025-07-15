@@ -18,7 +18,6 @@ public:
 
 	UPROPERTY(EditAnywhere) FBlackboardKeySelector Player;
 	UPROPERTY(EditAnywhere) FBlackboardKeySelector ShouldEscape;
-	UPROPERTY(EditAnywhere) FBlackboardKeySelector ShouldShoot;
 	UPROPERTY(EditAnywhere) FBlackboardKeySelector SafeRange;
 	UPROPERTY(EditAnywhere) FBlackboardKeySelector EscapeRange;
 	UPROPERTY(EditAnywhere) FBlackboardKeySelector EscapePosition;

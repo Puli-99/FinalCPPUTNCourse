@@ -10,15 +10,8 @@
 #include <Kismet/GameplayStatics.h>
 #include "Kismet/KismetMathLibrary.h"
 
-
-UInRangeToShoot::UInRangeToShoot()
-{
-	bNotifyTick = true;
-}
-
 EBTNodeResult::Type UInRangeToShoot::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-
 	myController = Cast<AMyAIController>(OwnerComp.GetOwner());
 	if (myController == nullptr)
 	{
@@ -32,16 +25,10 @@ EBTNodeResult::Type UInRangeToShoot::ExecuteTask(UBehaviorTreeComponent& OwnerCo
 		UE_LOG(LogTemp, Warning, TEXT("[AlertState] Cannot cast MyNewCharacter"));
 		return EBTNodeResult::Failed;
 	}
-	
-	UWorld* World = myController->GetWorld();
-	if (!World)
-	{
-		return EBTNodeResult::Failed;
-	}
-
 
 	if (myController->bPlayerDetected == true)
 	{
+
 		FVector playerLocation = player->GetActorLocation();
 		FVector enemyLocation = myController->GetPawn()->GetActorLocation();
 
@@ -51,22 +38,33 @@ EBTNodeResult::Type UInRangeToShoot::ExecuteTask(UBehaviorTreeComponent& OwnerCo
 		{
 			OwnerComp.GetBlackboardComponent()->SetValueAsBool(ShouldEscape.SelectedKeyName, true);
 			myController->enemyReposition = true;
-			//UE_LOG(LogTemp, Warning, TEXT("I should Escape"));
 		}
 
 		else
 		{
-			//UE_LOG(LogTemp, Warning, TEXT("I should Shoot"));
-			FRotator lookAt = UKismetMathLibrary::FindLookAtRotation(myController->GetPawn()->GetActorLocation(), player->GetActorLocation());
-			myController->GetPawn()->SetActorRotation(lookAt);
+			if (distance > OwnerComp.GetBlackboardComponent()->GetValueAsFloat("ShootRange"))
+			{
+				myController->enemyAttacking = false;
+				OwnerComp.GetBlackboardComponent()->SetValueAsBool(isChasing.SelectedKeyName, true);
+			}
+
+			else
+			{
+				myController->enemyAttacking = true;
+				OwnerComp.GetBlackboardComponent()->SetValueAsBool(isChasing.SelectedKeyName, false);
+				FRotator lookAt = UKismetMathLibrary::FindLookAtRotation(myController->GetPawn()->GetActorLocation(), player->GetActorLocation());
+				myController->GetPawn()->SetActorRotation(lookAt);
+			}
 		}
 	}
 
 	if (myController->bPlayerDetected == false)
 	{
+		OwnerComp.GetBlackboardComponent()->SetValueAsBool(isChasing.SelectedKeyName, false);
 		OwnerComp.GetBlackboardComponent()->SetValueAsBool(ShouldEscape.SelectedKeyName, false);
+		myController->enemyAttacking = false;
 		myController->enemyReposition = false;
-	}		
-	
-	return EBTNodeResult::Succeeded; // <- Necesario
+	}
+
+	return EBTNodeResult::Succeeded;
 }

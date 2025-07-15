@@ -15,8 +15,8 @@ class FINALCPPUTNCOURSE_API AMyNewCharacter : public AFinalCPPUTNCourseCharacter
 	GENERATED_BODY()
 public:
 
-	UPROPERTY(EditAnywhere) int health = 100;
-	UPROPERTY(EditAnywhere) int armor = 100;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) int health = 100;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) int armor = 100;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) int ammo = 10;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) int magazine = 10;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) bool canReload = true;

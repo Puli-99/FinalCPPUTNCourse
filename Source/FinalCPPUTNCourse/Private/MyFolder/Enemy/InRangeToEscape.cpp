@@ -6,6 +6,8 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "AIController.h"
 #include "MyFolder/Enemy/MyAIController.h"
+#include "GameFramework/CharacterMovementComponent.h" //Para el Rotator del enemigo
+#include "MyFolder/Enemy/C_Enemy.h"
 #include <Kismet/GameplayStatics.h>
 
 
@@ -25,7 +27,6 @@ EBTNodeResult::Type UInRangeToEscape::ExecuteTask(UBehaviorTreeComponent& OwnerC
 		return EBTNodeResult::Failed;
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("Debo escapar"));
 
 	FVector playerLocation = player->GetActorLocation();
 	FVector enemyLocation = myController->GetPawn()->GetActorLocation();
@@ -35,9 +36,20 @@ EBTNodeResult::Type UInRangeToEscape::ExecuteTask(UBehaviorTreeComponent& OwnerC
 	if (distance > OwnerComp.GetBlackboardComponent()->GetValueAsFloat(EscapeRange.SelectedKeyName)) //Revisando si debe escapar
 	{
 		OwnerComp.GetBlackboardComponent()->SetValueAsBool(ShouldEscape.SelectedKeyName, false);
-		OwnerComp.GetBlackboardComponent()->SetValueAsBool(ShouldShoot.SelectedKeyName, true);
 
 		myController->enemyReposition = false;
+	}
+
+	else
+	{
+		myController->enemy->bUseControllerRotationYaw = true; //Dando el control de rotación a la IA para hacer 
+		myController->enemy->GetCharacterMovement()->bOrientRotationToMovement = true; //que rote mirando al punto de escape
+		FVector directionAway = (enemyLocation - playerLocation).GetSafeNormal();
+		float fleeDistance = 500.f; // Podés ajustarlo a gusto o convertirlo en variable editable
+		FVector fleeDestination = enemyLocation + directionAway * fleeDistance;
+
+		OwnerComp.GetBlackboardComponent()->SetValueAsVector(EscapePosition.SelectedKeyName, fleeDestination);
+		myController->MoveToLocation(fleeDestination);
 	}
 
 	return EBTNodeResult::Succeeded;

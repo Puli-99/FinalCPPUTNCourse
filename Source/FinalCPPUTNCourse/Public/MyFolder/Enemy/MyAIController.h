@@ -30,6 +30,8 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) UBehaviorTree* behaviorTree;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) UBehaviorTree* shooterBT;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite) UBehaviorTree* longRangeBT;
+
 
 	UPROPERTY(EditAnywhere) FBlackboardKeySelector isAlerted;
 	void EndPlay(const EEndPlayReason::Type EndPlayReason);
@@ -40,13 +42,14 @@ public:
 	bool enemyAttacking;
 	bool enemyReposition;
 
-	float timer = 0.0f;
+
 
 	virtual void Tick(float DeltaTime) override;
 
 protected:
 	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+	void OnPossess(APawn* InPawn);
+	void SettingSight(float SightRange);
 
 
 };

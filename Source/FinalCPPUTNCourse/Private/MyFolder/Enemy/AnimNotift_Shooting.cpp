@@ -7,12 +7,13 @@
 #include "AIController.h"
 #include "GameFramework/Actor.h"
 #include "MyFolder/Enemy/C_Enemy.h"
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundBase.h"
 #include "MyFolder/Player/MyNewCharacter.h"
 
 
 void UAnimNotift_Shooting::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation)
 {
-	UE_LOG(LogTemp, Warning, TEXT("AnimNotify_Shooting ejecutado correctamente"));
 	if (!MeshComp) return;
 
 	AActor* Owner = MeshComp->GetOwner();
@@ -30,7 +31,6 @@ void UAnimNotift_Shooting::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenc
 
 void UAnimNotift_Shooting::Shooting(AMyAIController* myController)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Shooting se ejecuto"));
 
 	if (!myController || !myController->player) return;
 
@@ -39,5 +39,8 @@ void UAnimNotift_Shooting::Shooting(AMyAIController* myController)
 
 	UWorld* World = myController->GetPawn()->GetWorld();
 	World->SpawnActor<AActor>(myController->enemy->bulletToSpawn, spawnLocation, spawnRotation);
-	UE_LOG(LogTemp, Warning, TEXT("Shooting"));
+	if (myController->enemy->shootSfx)
+	{
+		UGameplayStatics::SpawnSound2D(this, myController->enemy->shootSfx);
+	}
 }

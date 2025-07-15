@@ -13,7 +13,11 @@ AC_Enemy::AC_Enemy()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
+	if (AIControllerClass == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Controller no encontrado"));
+		return;
+	}
 }
 
 // Called when the game starts or when spawned
@@ -31,6 +35,8 @@ void AC_Enemy::BeginPlay()
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Se encontro al jugador al iniciar"));
 	}
+
+	DynamicMaterial = GetMesh()->CreateAndSetMaterialInstanceDynamic(0);
 }
 
 void AC_Enemy::NotifyActorBeginOverlap(AActor* OtherActor)
@@ -39,8 +45,8 @@ void AC_Enemy::NotifyActorBeginOverlap(AActor* OtherActor)
 	if (OtherActor == myplayer)
 	{
 		isPlayerOverlaping = true;
+		UE_LOG(LogTemp, Warning, TEXT("Overlapeando Jugador"));
 	}
-
 }
 
 void AC_Enemy::NotifyActorEndOverlap(AActor* OtherActor)
@@ -49,6 +55,7 @@ void AC_Enemy::NotifyActorEndOverlap(AActor* OtherActor)
 	if (OtherActor == myplayer)
 	{
 		isPlayerOverlaping = false;
+		UE_LOG(LogTemp, Warning, TEXT("Se termino el overlapeado"));
 	}
 }
 
@@ -58,19 +65,19 @@ void AC_Enemy::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	if (isPlayerOverlaping)
 	{
-		timer1 += DeltaTime;
+		timer += DeltaTime;
 
-		if (timer1 < 0.01f)
+		if (timer < 0.01f)
 		{
-			//UE_LOG(LogTemp, Warning, TEXT("%s esta atacando"), *GetActorLabel());
+			UE_LOG(LogTemp, Warning, TEXT("%s esta atacando"), *GetActorLabel());
 			myplayer->TakeDamage(enemyDamage);
 		}
 
 	}
 
-	if (timer1 > 0.2f)
+	if (timer > 0.2f)
 	{
-		timer1 = 0.0f;
+		timer = 0.0f;
 	}
 	//Reemplazar esto por algo como esto: GetWorldTimerManager().SetTimer(damageTimer, this, myplayer->TakeDamage(enemyDamage), time, true);
 	//Preguntar cómo hacer para que se tome myplayer->TakeDamage()
@@ -95,6 +102,18 @@ void AC_Enemy::TakeDamage(int damage)
 {
 	health -= damage;
 	UE_LOG(LogTemp, Warning, TEXT("%s Health: %d"), *GetActorLabel(), health);
-
+	if (DynamicMaterial)
+	{
+		DynamicMaterial->SetVectorParameterValue("Param", FLinearColor(1.f, 0.f, 0.f, 0.f));
+	}
+	GetWorldTimerManager().SetTimer(resetingColorTimer, this, &AC_Enemy::ResetingColor, 0.1f, false);
 	Die();
+}
+
+void AC_Enemy::ResetingColor()
+{
+	if (DynamicMaterial)
+	{
+		DynamicMaterial->SetVectorParameterValue("Param", FLinearColor(1.f, 1.f, 1.f, 0.f));
+	}
 }

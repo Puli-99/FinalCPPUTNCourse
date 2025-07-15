@@ -12,11 +12,12 @@
 
 AMyAIController::AMyAIController()
 {
+	bStartAILogicOnPossess = true;
+
 	//Configuramos los BTs
 	ConstructorHelpers::FObjectFinder<UBehaviorTree> BTAsset(TEXT("/Game/0/Enemy/AI/MyBehaviourTree"));
 	if (BTAsset.Succeeded())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("BTAsset Succeed!"));
 		behaviorTree = BTAsset.Object;
 	}
 
@@ -24,13 +25,17 @@ AMyAIController::AMyAIController()
 	ConstructorHelpers::FObjectFinder<UBehaviorTree> ShooterBTAsset(TEXT("/Game/0/Enemy/AI/ShooterBT"));
 	if (ShooterBTAsset.Succeeded())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Shooter BTAsset Succeed!"));
 		shooterBT = ShooterBTAsset.Object;
 	}
 
 
-	//Configuramos la percepción del enemigo
+	ConstructorHelpers::FObjectFinder<UBehaviorTree> LongRangeBTAsset(TEXT("/Game/0/Enemy/AI/LongRangeBT"));
+	if (LongRangeBTAsset.Succeeded())
+	{
+		longRangeBT = LongRangeBTAsset.Object;
+	}
 
+	//Configuramos la percepción del enemigo
 	perception = CreateDefaultSubobject<UAIPerceptionComponent>("Perception");
 	sight = CreateDefaultSubobject<UAISenseConfig_Sight>("Sight");
 	sight->SightRadius = 1000;
@@ -43,17 +48,16 @@ AMyAIController::AMyAIController()
 	perception->OnTargetPerceptionUpdated.AddDynamic(this, &AMyAIController::OnStimulus);
 
 	//Terminamos de configurar la perceprción del enemigo
+
 }
+
 void AMyAIController::OnStimulus(AActor* Actor, FAIStimulus Stimulus)
 {
 	gameMode = Cast<AFinalCPPUTNCourseGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
 	if (!gameMode) { return; }
 
-	if (!enemy)
-	{
-		UE_LOG(LogTemp, Error, TEXT("[OnStimulus] El enemy no está disponible aún."));
-		return;
-	}
+	enemy = Cast<AC_Enemy>(GetPawn());
+	if (!enemy){UE_LOG(LogTemp, Error, TEXT("[OnStimulus] El enemy no esta disponible aun."));return;}
 
 	AMyNewCharacter* detectedPlayer = Cast<AMyNewCharacter>(Actor);
 
@@ -95,80 +99,106 @@ void AMyAIController::OnStimulus(AActor* Actor, FAIStimulus Stimulus)
 			if (GetPawn())
 			{
 				//UE_LOG(LogTemp, Warning, TEXT("Sacado de la lista: %s"), *GetPawn()->GetActorLabel());
-
 			}
 		}
 	}
 }
-void AMyAIController::BeginPlay()
+
+void AMyAIController::OnPossess(APawn* InPawn)
 {
-	Super::BeginPlay();
-	UE_LOG(LogTemp, Warning, TEXT("BeginPlay"));
+	Super::OnPossess(InPawn);
+
 	enemy = Cast<AC_Enemy>(GetPawn());
-	if (enemy == nullptr)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[Alert State] Enemy could not be casted on MyAIControler"));
-	}
-	enemy->bUseControllerRotationYaw = true; //Dando el control de rotación a la IA para hacer 
-	enemy->GetCharacterMovement()->bOrientRotationToMovement = true; //que la rotación al principio le pertenezca rote segun la direccion de la IA
+	if (enemy == nullptr){UE_LOG(LogTemp, Warning, TEXT("[Alert State] Enemy could not be casted on MyAIControler"));return;}
+	if (!InPawn){UE_LOG(LogTemp, Warning, TEXT("[Alert State] Theres no pawn to posses"));return;}
 
-	if (behaviorTree == nullptr)
+	if (InPawn)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("behavior tree null"));
+		enemy->bUseControllerRotationYaw = true; //Dando el control de rotación a la IA para hacer 
+		enemy->GetCharacterMovement()->bOrientRotationToMovement = true; //que la rotación al principio le pertenezca rote segun la direccion de la IA
 
+		if (behaviorTree == nullptr){UE_LOG(LogTemp, Warning, TEXT("behavior tree null"));return;}
+
+		if (shooterBT == nullptr){UE_LOG(LogTemp, Warning, TEXT("Shooter behavior tree null"));return;}
+
+		if (longRangeBT == nullptr){UE_LOG(LogTemp, Warning, TEXT("LongRange behavior tree null"));return;}
+
+		switch (enemy->enemyType)
+		{
+			case E_Enemy::Melee:
+				if (behaviorTree)
+				{
+					RunBehaviorTree(behaviorTree);
+					UE_LOG(LogTemp, Warning, TEXT("Running Melee BT"));
+				}
+				break;
+
+			case E_Enemy::Shooter:
+				if (shooterBT)
+				{
+					SettingSight(2250);
+					RunBehaviorTree(shooterBT);
+					UE_LOG(LogTemp, Warning, TEXT("Running Shooter BT"));
+				}
+				break;
+
+			case E_Enemy::LongRange:
+				if (longRangeBT)
+				{
+					SettingSight(3000);
+					RunBehaviorTree(longRangeBT);
+					UE_LOG(LogTemp, Warning, TEXT("Running LongRange BT"));
+				}
+				break;
+			default:
+				UE_LOG(LogTemp, Warning, TEXT("Could not find BT for this enemy"));
+				break;
+
+		}
+	}	
+}
+
+void AMyAIController::SettingSight(float SightRange) //Reconfiguramos los sight settings para el Shooter Enemy
+{
+	FAISenseID Id = UAISense::GetSenseID(UAISense_Sight::StaticClass());
+
+	if (!Id.IsValid())
+	{
+		UE_LOG(LogTemp, Error, TEXT("Wrong Sense ID"));
 		return;
 	}
 
-	if (shooterBT == nullptr)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("behavior tree null"));
+	// GetPerception() = AIController->GetPerceptionComponent() //Los GetPerceptionComponent estaban como GetPerecption nada mas, pero los cambie porque GetPerception no era nada
+	auto Config = GetPerceptionComponent()->GetSenseConfig(Id);
 
+	if (Config == nullptr)
 		return;
-	}
 
-	switch (enemy->enemyType)
-	{
-		case E_Enemy::Melee:
-			if (behaviorTree)
-			{
-				RunBehaviorTree(behaviorTree);
-				UE_LOG(LogTemp, Warning, TEXT("Running Melee BT"));
-			}
-			break;
+	auto ConfigSight = Cast<UAISenseConfig_Sight>(Config);
 
-		case E_Enemy::Shooter:
-			if (shooterBT)
-			{
-				RunBehaviorTree(shooterBT);
-				sight->SightRadius = 3500;
-				sight->LoseSightRadius = 3600;
-				sight->PeripheralVisionAngleDegrees = 120;
-				perception->ConfigureSense(*sight);
-				UE_LOG(LogTemp, Warning, TEXT("Running Shooter BT"));
-			}
-			break;
-	}
+	// Save original lose range
+	float LoseRange = ConfigSight->LoseSightRadius - ConfigSight->SightRadius;
 
+	ConfigSight->SightRadius = SightRange;
+
+	// Apply lose range to new radius of the sight
+	ConfigSight->LoseSightRadius = ConfigSight->SightRadius + LoseRange;
+
+	//UE_LOG(LogTemp, Warning, TEXT("Sight Range: %.2"), SightRange);
+
+	GetPerceptionComponent()->RequestStimuliListenerUpdate();
 }
 
 void AMyAIController::Tick(float DeltaTime)
 {
-	enemy->c_EnemyStrafeRight = enemyStrafeRight;
-	enemy->c_EnemyStrafeLeft = enemyStrafeLeft;
-	enemy->c_EnemyIsAttacking = enemyAttacking;
-	enemy->c_EnemyIsRepositioning = enemyReposition;
-
-	//timer += DeltaTime;
-
-	//if (timer < 0.01f)
-	//{
-	//	UE_LOG(LogTemp, Warning, TEXT("%s %s Atacando"), *enemy->GetActorLabel(), enemyAttacking ? TEXT("esta") : TEXT("no esta"));
-	//}
-
-	//if (timer > 0.5f)
-	//{
-	//	timer = 0.0f;
-	//}
+	if (enemy == nullptr){UE_LOG(LogTemp, Warning, TEXT("enemy null on Tick"));return;}
+	if (enemy != nullptr)
+	{
+		enemy->c_EnemyStrafeRight = enemyStrafeRight;
+		enemy->c_EnemyStrafeLeft = enemyStrafeLeft;
+		enemy->c_EnemyIsAttacking = enemyAttacking;
+		enemy->c_EnemyIsRepositioning = enemyReposition;
+	}
 }
 
 
