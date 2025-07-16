@@ -41,47 +41,28 @@ void AC_Enemy::BeginPlay()
 
 void AC_Enemy::NotifyActorBeginOverlap(AActor* OtherActor)
 {
-	//GetWorldTimerManager().SetTimer(damageTimer, this, &AC_Enemy::DealDamage, time, true);
 	if (OtherActor == myplayer)
 	{
-		isPlayerOverlaping = true;
-		UE_LOG(LogTemp, Warning, TEXT("Overlapeando Jugador"));
+		GetWorldTimerManager().SetTimer(damageTimer, this, &AC_Enemy::DealDamage, 0.2f, true);
 	}
 }
 
 void AC_Enemy::NotifyActorEndOverlap(AActor* OtherActor)
 {
-	//GetWorldTimerManager().ClearTimer(damageTimer);
-	if (OtherActor == myplayer)
-	{
-		isPlayerOverlaping = false;
-		UE_LOG(LogTemp, Warning, TEXT("Se termino el overlapeado"));
-	}
+	GetWorldTimerManager().ClearTimer(damageTimer);
 }
 
 // Called every frame
 void AC_Enemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	if (isPlayerOverlaping)
-	{
-		timer += DeltaTime;
-
-		if (timer < 0.01f)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("%s esta atacando"), *GetActorLabel());
-			myplayer->TakeDamage(enemyDamage);
-		}
-
-	}
-
-	if (timer > 0.2f)
-	{
-		timer = 0.0f;
-	}
-	//Reemplazar esto por algo como esto: GetWorldTimerManager().SetTimer(damageTimer, this, myplayer->TakeDamage(enemyDamage), time, true);
-	//Preguntar cómo hacer para que se tome myplayer->TakeDamage()
 }
+
+void AC_Enemy::DealDamage()
+{
+	myplayer->TakeDamage(enemyDamage);
+}
+
 
 // Called to bind functionality to input
 void AC_Enemy::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)

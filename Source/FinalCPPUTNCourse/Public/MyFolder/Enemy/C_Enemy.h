@@ -29,6 +29,7 @@ public:
 	bool isPlayerOverlaping;
 	class AMyNewCharacter* myplayer;
 	float timer = 0.0f;
+	FTimerHandle damageTimer;
 
 	//Variables para controlar animaciones
 	UPROPERTY(EditAnywhere, BlueprintReadWrite) bool c_EnemyStrafeRight;
@@ -53,6 +54,7 @@ public:
 
 
 	void TakeDamage(int damage);
+	void DealDamage();
 	void Die();
 	void ResetingColor();
 
